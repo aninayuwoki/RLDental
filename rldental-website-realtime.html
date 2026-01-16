@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLDental | Experiencia Odontológica Premium</title>
+    <meta name="description" content="RLDental - Citas odontológicas de vanguardia.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        dental: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'float-slow': 'float 6s ease-in-out infinite',
+                        'pulse-soft': 'pulse-glow 3s infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos Base y Utilidades de Alto Rendimiento */
+        body {
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Premium */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Efectos de Hover Magnéticos */
+        .hover-lift {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px -10px rgba(14, 165, 233, 0.3);
+        }
+
+        /* Botón Líquido */
+        .btn-liquid {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+        .btn-liquid::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0c4a6e; /* Un tono más oscuro */
+            border-radius: 9999px;
+            z-index: -2;
+        }
+        .btn-liquid::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background-color: #0ea5e9; /* Tono principal */
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            z-index: -1;
+        }
+        .btn-liquid:hover::before {
+            width: 100%;
+        }
+
+        /* Animaciones de Entrada (Scroll Reveal) */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Slot de Tiempo (Cápsula) */
+        .time-capsule {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .time-capsule:active {
+            transform: scale(0.95);
+        }
+        .time-capsule.selected {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.5);
+            transform: scale(1.05);
+        }
+        /* Checkmark animado al seleccionar */
+        .time-capsule.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Gradiente de fondo animado */
+        .mesh-bg {
+            background-color: #f0f9ff;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(192,90%,90%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(198,80%,90%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(180,80%,90%,1) 0, transparent 50%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800">
+
+    <div class="mesh-bg">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-60">
+            <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+            <div class="absolute top-0 right-1/4 w-96 h-96 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+            <div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-sky-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        </div>
+    </div>
+
+    <nav class="fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            <div class="glass-panel rounded-full px-6 py-3 flex justify-between items-center shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <div class="flex items-center gap-3 group cursor-pointer">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-sky-500 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform duration-300">
+                        <span class="text-xl">🦷</span>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-tight text-slate-900 leading-none">RLDental</h1>
+                        <span class="text-xs text-sky-600 font-semibold tracking-wide uppercase">Reigosa León</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div id="syncStatus" class="hidden md:flex items-center gap-2 text-xs font-medium px-3 py-1.5 bg-slate-100/50 rounded-full border border-slate-200">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <span class="text-slate-600">Sistema Online</span>
+                    </div>
+                    <a href="#citas" class="hidden sm:inline-flex bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg hover:bg-slate-800 transition-all hover:scale-105 active:scale-95">
+                        Agendar Cita
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="relative pt-40 pb-20 lg:pt-52 lg:pb-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            
+            <div class="inline-block mb-6 reveal active">
+                <span class="py-1 px-3 rounded-full bg-sky-100 text-sky-700 text-xs font-bold uppercase tracking-wider border border-sky-200 shadow-sm">
+                    Odontología de Nueva Generación
+                </span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-slate-900 mb-8 reveal active" style="transition-delay: 100ms;">
+                Tu sonrisa merece <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-600 inline-block animate-float-slow">perfección.</span>
+            </h1>
+
+            <p class="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed reveal active" style="transition-delay: 200ms;">
+                Experimenta un cuidado dental donde la tecnología se encuentra con el confort. Agenda tu cita en segundos.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center reveal active" style="transition-delay: 300ms;">
+                <a href="#citas" class="group relative px-8 py-4 bg-sky-500 rounded-full text-white font-bold text-lg shadow-xl shadow-sky-500/30 hover:shadow-sky-500/50 transition-all hover:-translate-y-1 overflow-hidden">
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shine_1s_infinite]"></div>
+                    <span class="flex items-center gap-2">
+                        Reservar Ahora <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                    </span>
+                </a>
+                <button onclick="goToWhatsAppDirect()" class="px-8 py-4 rounded-full bg-white text-slate-700 font-bold text-lg border border-slate-200 shadow-lg hover:bg-slate-50 transition-all hover:-translate-y-1 flex items-center gap-2">
+                    <i data-lucide="message-circle" class="w-5 h-5 text-green-500"></i>
+                    WhatsApp
+                </button>
+            </div>
+        </div>
+
+        <div class="absolute top-1/2 left-10 -translate-y-1/2 w-24 h-24 bg-gradient-to-br from-blue-400 to-sky-300 rounded-2xl rotate-12 blur-sm opacity-20 animate-float-slow"></div>
+        <div class="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-bl from-purple-400 to-pink-300 rounded-full blur-xl opacity-20 animate-pulse-soft"></div>
+    </header>
+
+    <section class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 reveal">
+                <div>
+                    <h2 class="text-4xl font-bold text-slate-900 mb-2">Nuestros Servicios</h2>
+                    <p class="text-slate-500 text-lg">Soluciones integrales para toda la familia</p>
+                </div>
+                <div class="hidden md:block pb-2">
+                    <div class="h-1 w-32 bg-sky-500 rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="servicesGrid">
+                </div>
+        </div>
+    </section>
+
+    <section id="citas" class="py-24 relative overflow-hidden">
+        <div class="absolute inset-0 bg-slate-900 transform skew-y-3 origin-bottom-right scale-110 z-0"></div>
+        
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="glass-panel bg-white/10 backdrop-blur-2xl border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl reveal">
+                
+                <div class="text-center mb-12">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 shadow-lg shadow-sky-500/30 mb-6 animate-float-slow">
+                        <i data-lucide="calendar-check" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Agenda Inteligente</h2>
+                    <p class="text-blue-100 text-lg">Sincronización en tiempo real con nuestra agenda</p>
+                </div>
+
+                <div class="space-y-8 max-w-3xl mx-auto">
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                        <label class="block text-blue-200 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4"></i> Selecciona el día ideal
+                        </label>
+                        <div class="relative">
+                            <select id="selectedDate" class="w-full bg-slate-800/50 text-white border-2 border-slate-600 rounded-xl px-5 py-4 appearance-none focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-medium text-lg cursor-pointer hover:bg-slate-800/70">
+                                <option value="" class="bg-slate-800">Cargando fechas...</option>
+                            </select>
+                            <div class="absolute right-5 top-1/2 transform -translate-y-1/2 pointer-events-none text-sky-400">
+                                <i data-lucide="chevron-down" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="timeSlotsContainer" class="hidden transition-all duration-500">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-white font-bold text-xl flex items-center gap-2">
+                                <i data-lucide="clock" class="w-5 h-5 text-sky-400"></i> Horarios Disponibles
+                            </h3>
+                            <button onclick="refreshAvailability()" class="text-xs text-sky-300 hover:text-white flex items-center gap-1 transition-colors px-3 py-1 rounded-full hover:bg-white/10">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Actualizar
+                            </button>
+                        </div>
+
+                        <div id="loadingSlots" class="hidden py-10 text-center">
+                            <div class="inline-block animate-spin text-sky-400 mb-2">
+                                <i data-lucide="loader-2" class="w-10 h-10"></i>
+                            </div>
+                            <p class="text-blue-200 text-sm">Consultando disponibilidad...</p>
+                        </div>
+
+                        <div id="timeSlots" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            </div>
+
+                        <div id="noSlots" class="hidden text-center py-10 bg-red-500/10 rounded-2xl border border-red-500/20">
+                            <p class="text-red-200 font-medium">No hay citas disponibles para esta fecha.</p>
+                        </div>
+                    </div>
+
+                    <div id="whatsappButton" class="hidden pt-6 border-t border-white/10 animate-fade-in-up">
+                        <div class="bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl p-6 border border-emerald-500/20 mb-6">
+                            <div class="flex gap-4">
+                                <div class="bg-emerald-500 rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0 text-white shadow-lg shadow-emerald-500/20">
+                                    <i data-lucide="check" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-bold text-lg">¡Casi listo!</h4>
+                                    <p class="text-emerald-100 text-sm mt-1">Has seleccionado el <span id="summaryDate" class="font-bold text-white"></span> a las <span id="summaryTime" class="font-bold text-white"></span>.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="goToWhatsApp()" class="w-full group btn-liquid bg-white text-slate-900 font-bold text-xl py-5 px-8 rounded-2xl shadow-2xl hover:shadow-emerald-500/20 transition-all flex items-center justify-center gap-3">
+                            <span class="relative z-10 flex items-center gap-2">
+                                Confirmar vía WhatsApp
+                                <i data-lucide="send" class="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i>
+                            </span>
+                        </button>
+                        <p class="text-center text-blue-200/60 text-xs mt-4">Serás redirigido al chat oficial de la clínica</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <span class="text-sky-600 font-bold tracking-wider uppercase text-sm">Información</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2">Horarios de Atención</h2>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="scheduleGrid">
+                </div>
+        </div>
+    </section>
+
+    <footer class="bg-white border-t border-slate-200 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+                <div class="flex items-center gap-3 mb-6 md:mb-0">
+                    <div class="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+                        <span class="text-2xl">🦷</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl text-slate-900">RLDental</h3>
+                        <p class="text-slate-500 text-sm">Excelencia en cada detalle</p>
+                    </div>
+                </div>
+                <div class="flex gap-6">
+                    <a href="#" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-sky-500 hover:text-white transition-all">
+                        <i data-lucide="facebook" class="w-5 h-5"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-sky-500 hover:text-white transition-all">
+                        <i data-lucide="instagram" class="w-5 h-5"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-100 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+                <p>&copy; 2026 Reigosa León Dental. Todos los derechos reservados.</p>
+                <div class="flex items-center gap-2 mt-4 md:mt-0">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span>Sistema Operativo</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_URL = 'http://localhost:3001';
+        const BUSINESS_PHONE = '593978719532'; // Default Fallback
+        
+        let config = null;
+        let selectedDate = '';
+        let selectedTime = '';
+
+        // Inicializar Iconos
+        lucide.createIcons();
+
+        // Configurar Observador de Intersección para animaciones al hacer scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target); // Solo animar una vez
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Efecto TILT para tarjetas (Vanilla JS)
+        function initTiltEffect(element) {
+            element.addEventListener('mousemove', (e) => {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((y - centerY) / centerY) * -5; // Max rotación 5deg
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            });
+
+            element.addEventListener('mouseleave', () => {
+                element.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+            });
+        }
+
+        // --- LÓGICA DE NEGOCIO ---
+
+        async function loadConfig() {
+            try {
+                // Simulación de delay para ver animaciones de carga (eliminar en prod)
+                // await new Promise(r => setTimeout(r, 500)); 
+                
+                const response = await fetch(`${API_URL}/api/config`);
+                if (!response.ok) throw new Error('Error de conexión');
+                config = await response.json();
+                
+                document.getElementById('syncStatus').innerHTML = `
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    <span class="text-slate-600 font-medium">Sincronizado</span>
+                `;
+            } catch (error) {
+                console.warn('Usando configuración offline/fallback', error);
+                document.getElementById('syncStatus').innerHTML = `
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    <span class="text-slate-600">Modo Offline</span>
+                `;
+                
+                // Fallback Data
+                config = {
+                    businessPhone: BUSINESS_PHONE,
+                    schedule: {
+                        'Lunes': { open: '08:00', close: '18:00', slots: ['08:00', '09:00', '10:00', '11:00', '15:00', '16:00', '17:00'] },
+                        'Martes': { open: '08:00', close: '18:00', slots: ['08:00', '10:00', '12:00', '14:00', '16:00'] },
+                        'Miércoles': { open: '08:00', close: '18:00', slots: ['09:00', '11:00', '13:00', '15:00'] },
+                        'Jueves': { open: '08:00', close: '18:00', slots: ['08:00', '10:00', '12:00', '14:00', '16:00'] },
+                        'Viernes': { open: '08:00', close: '18:00', slots: ['08:00', '10:00', '12:00', '14:00', '16:00'] },
+                        'Sábado': { open: '08:00', close: '14:00', slots: ['08:00', '10:00', '12:00'] }
+                    },
+                    services: ['Odontología General', 'Diseño de Sonrisa', 'Ortodoncia Invisible', 'Implantes']
+                };
+            }
+
+            renderServices();
+            renderScheduleInfo();
+            populateDateSelect();
+        }
+
+        function renderServices() {
+            const grid = document.getElementById('servicesGrid');
+            const icons = ['shield-check', 'sparkles', 'smile', 'anchor'];
+            const gradients = [
+                'from-sky-400 to-blue-600',
+                'from-purple-400 to-pink-600', 
+                'from-emerald-400 to-teal-600',
+                'from-orange-400 to-red-500'
+            ];
+
+            grid.innerHTML = '';
+            config.services.forEach((service, index) => {
+                const card = document.createElement('div');
+                card.className = 'glass-card p-8 rounded-3xl relative overflow-hidden group cursor-default';
+                
+                card.innerHTML = `
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${gradients[index % gradients.length]} flex items-center justify-center text-white mb-6 shadow-lg transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                        <i data-lucide="${icons[index % icons.length]}" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">${service}</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Procedimientos especializados con tecnología de punta para garantizar tu salud.</p>
+                `;
+                
+                grid.appendChild(card);
+                initTiltEffect(card); // Activar efecto 3D
+            });
+            lucide.createIcons();
+        }
+
+        function renderScheduleInfo() {
+            const grid = document.getElementById('scheduleGrid');
+            grid.innerHTML = '';
+            
+            Object.entries(config.schedule).forEach(([day, hours], i) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-8 rounded-full bg-slate-200"></div>
+                        <span class="font-bold text-slate-700">${day}</span>
+                    </div>
+                    <span class="text-sm font-medium bg-slate-100 px-3 py-1 rounded-lg text-slate-600">${hours.open} - ${hours.close}</span>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function populateDateSelect() {
+            const select = document.getElementById('selectedDate');
+            select.innerHTML = '<option value="">Selecciona el día para tu cita</option>';
+            
+            const today = new Date();
+            let addedCount = 0;
+            
+            for (let i = 1; i <= 21; i++) { // Mostrar 3 semanas
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' });
+                const dayCapitalized = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+                
+                if (config.schedule[dayCapitalized]) {
+                    const option = document.createElement('option');
+                    option.value = date.toISOString().split('T')[0];
+                    const niceDate = date.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long' });
+                    option.textContent = niceDate.charAt(0).toUpperCase() + niceDate.slice(1);
+                    select.appendChild(option);
+                    addedCount++;
+                }
+            }
+        }
+
+        // --- Manejo de Selección ---
+
+        const dateSelect = document.getElementById('selectedDate');
+        const slotsContainer = document.getElementById('timeSlotsContainer');
+        const slotsGrid = document.getElementById('timeSlots');
+        const loadingEl = document.getElementById('loadingSlots');
+        const noSlotsEl = document.getElementById('noSlots');
+        const whatsappSection = document.getElementById('whatsappButton');
+
+        dateSelect.addEventListener('change', async (e) => {
+            selectedDate = e.target.value;
+            whatsappSection.classList.add('hidden');
+            
+            if (!selectedDate) {
+                slotsContainer.classList.add('hidden');
+                return;
+            }
+
+            slotsContainer.classList.remove('hidden');
+            await fetchAndRenderSlots(selectedDate);
+        });
+
+        async function fetchAndRenderSlots(date) {
+            slotsGrid.innerHTML = '';
+            loadingEl.classList.remove('hidden');
+            noSlotsEl.classList.add('hidden');
+            slotsGrid.classList.add('hidden');
+
+            // Simular petición red para efecto visual
+            await new Promise(resolve => setTimeout(resolve, 600));
+
+            let availableSlots = [];
+            
+            try {
+                const response = await fetch(`${API_URL}/api/availability/${date}`);
+                if (!response.ok) throw new Error('API Error');
+                const data = await response.json();
+                availableSlots = data.availableSlots;
+            } catch (e) {
+                // Fallback local logic
+                const dateObj = new Date(date);
+                const dayName = dateObj.toLocaleDateString('es-ES', { weekday: 'long' });
+                const dayCap = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+                availableSlots = config.schedule[dayCap]?.slots || [];
+            }
+
+            loadingEl.classList.add('hidden');
+
+            if (availableSlots.length === 0) {
+                noSlotsEl.classList.remove('hidden');
+            } else {
+                slotsGrid.classList.remove('hidden');
+                renderSlots(availableSlots);
+            }
+        }
+
+        function renderSlots(slots) {
+            slots.forEach((time, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'time-capsule bg-white/10 border border-white/20 text-white py-3 px-4 rounded-xl font-bold hover:bg-white/20 hover:border-white/40 focus:outline-none';
+                
+                // Animación escalonada de entrada
+                btn.style.opacity = '0';
+                btn.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    btn.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    btn.style.opacity = '1';
+                    btn.style.transform = 'translateY(0)';
+                }, index * 50);
+
+                btn.textContent = time;
+                btn.onclick = () => selectSlot(time, btn);
+                slotsGrid.appendChild(btn);
+            });
+        }
+
+        function selectSlot(time, btnElement) {
+            selectedTime = time;
+            
+            // Reset styles
+            document.querySelectorAll('.time-capsule').forEach(el => {
+                el.classList.remove('selected');
+                el.classList.add('opacity-50'); // Dim others
+            });
+            
+            btnElement.classList.remove('opacity-50');
+            btnElement.classList.add('selected');
+
+            // Show Confirmation
+            whatsappSection.classList.remove('hidden');
+            
+            // Scroll suave hacia el botón de confirmación
+            setTimeout(() => {
+                whatsappSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+
+            // Update summary text
+            const dateObj = new Date(selectedDate);
+            document.getElementById('summaryDate').textContent = dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+            document.getElementById('summaryTime').textContent = time;
+        }
+
+        function refreshAvailability() {
+            if(selectedDate) fetchAndRenderSlots(selectedDate);
+        }
+
+        function goToWhatsApp() {
+            if (!selectedDate || !selectedTime) return;
+            const msg = `Hola RLDental! 👋\nQuisiera confirmar una cita para el *${selectedDate}* a las *${selectedTime}*.`;
+            window.open(`https://wa.me/${config.businessPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function goToWhatsAppDirect() {
+            const msg = "Hola RLDental! Me gustaría obtener información sobre sus tratamientos.";
+            window.open(`https://wa.me/${config.businessPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // --- Inicio ---
+        window.addEventListener('DOMContentLoaded', loadConfig);
+
+    </script>
+</body>
+</html>

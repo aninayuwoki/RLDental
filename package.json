@@ -1,0 +1,33 @@
+{
+  "name": "rldental-whatsapp-bot",
+  "version": "2.0.0",
+  "description": "Bot de WhatsApp para RLDental con gestión automática de citas y disponibilidad en tiempo real",
+  "main": "whatsapp-bot.js",
+  "scripts": {
+    "start": "node whatsapp-bot.js",
+    "dev": "nodemon whatsapp-bot.js",
+    "clean": "rm -rf .wwebjs_auth .wwebjs_cache"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "dental",
+    "appointments",
+    "rldental",
+    "real-time"
+  ],
+  "author": "RLDental - Reigosa León Dental",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
