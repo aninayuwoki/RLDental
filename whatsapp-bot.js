@@ -36,7 +36,7 @@ const defaultConfig = {
 const client = new Client({
   authStrategy: new LocalAuth({ clientId: 'rldental-bot' }),
   puppeteer: {
-    headless: true,
+    headless: 'new',
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -48,6 +48,10 @@ const client = new Client({
       '--disable-gpu',
       '--disable-extensions'
     ]
+  },
+  webVersionCache: {
+    type: 'remote',
+    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html'
   }
 });
 
@@ -621,6 +625,10 @@ client.on('auth_failure', (msg) => {
   console.log('💡 Tip: Si el error persiste, intenta borrar las carpetas .wwebjs_auth y .wwebjs_cache');
 });
 
+client.on('error', (err) => {
+  console.error('❌ Error en el cliente de WhatsApp:', err);
+});
+
 client.on('disconnected', (reason) => {
   console.log('❌ WhatsApp desconectado:', reason);
   console.log('🔄 Intentando reconectar en 10 segundos...');
@@ -636,10 +644,10 @@ console.log('🚀 Preparando el sistema...');
 
 initUserStates().then(() => {
   console.log('🚀 Iniciando cliente de WhatsApp...');
-  console.log('💡 Si es la primera vez, se descargarán los archivos necesarios del navegador...');
+  console.log('💡 Si es la primera vez, se descargarán los archivos necesarios del navegador (aprox. 200MB)...');
 
   startupTimeout = setInterval(() => {
-    console.log('⏳ El bot sigue intentando conectar con WhatsApp... (esto es normal si la conexión es lenta)');
+    console.log('⏳ Esperando respuesta de WhatsApp... (esto puede tardar según tu conexión a internet)');
   }, 15000);
 
   client.initialize().then(() => {
