@@ -13,6 +13,7 @@ const path = require('path');
 const PORT = 3001;
 const CONFIG_FILE = path.join(__dirname, 'rldental-config.json');
 const APPOINTMENTS_FILE = path.join(__dirname, 'appointments.json');
+const USER_STATES_FILE = path.join(__dirname, 'user-states.json');
 
 // ⚠️ IMPORTANTE: Tu número personal para recibir notificaciones
 const ADMIN_PHONE = '593997982617@c.us';
@@ -35,7 +36,7 @@ const defaultConfig = {
 const client = new Client({
   authStrategy: new LocalAuth({ clientId: 'rldental-bot' }),
   puppeteer: {
-    headless: false, // Para depuración
+    headless: true, // Para depuración
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -45,10 +46,6 @@ const client = new Client({
       '--no-zygote',
       '--disable-gpu'
     ]
-  },
-  webVersionCache: {
-    type: 'remote',
-    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html' // Versión estable
   }
 });
 
@@ -85,12 +82,31 @@ async function saveAppointments(appointments) {
   await fs.writeFile(APPOINTMENTS_FILE, JSON.stringify(appointments, null, 2), 'utf8');
 }
 
+async function loadUserStates() {
+  try {
+    const data = await fs.readFile(USER_STATES_FILE, 'utf8');
+    const parsed = JSON.parse(data);
+    return new Map(Object.entries(parsed));
+  } catch (error) {
+    return new Map();
+  }
+}
+
+async function saveUserStates() {
+  try {
+    const obj = Object.fromEntries(userStates);
+    await fs.writeFile(USER_STATES_FILE, JSON.stringify(obj, null, 2), 'utf8');
+  } catch (error) {
+    console.error('❌ Error guardando estados de usuario:', error.message);
+  }
+}
+
 function generateAppointmentId() {
   return `CITA-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 }
 
 function formatDate(dateStr) {
-  const date = new Date(dateStr);
+  const date = new Date(dateStr + 'T12:00:00');
   return date.toLocaleDateString('es-ES', { 
     weekday: 'long', 
     day: 'numeric', 
@@ -125,7 +141,7 @@ async function getAvailableSlots(date) {
 }
 
 function isAdmin(phone) {
-  return phone === ADMIN_PHONE;
+  return phone.includes('593997982617');
 }
 
 async function sendMessageSafe(phone, message) {
@@ -141,7 +157,8 @@ async function sendMessageSafe(phone, message) {
 }
 
 // ========== ESTADO DE CONVERSACIONES ==========
-const userStates = new Map();
+let userStates = new Map();
+loadUserStates().then(s => userStates = s);
 
 // ========== MANEJADOR ÚNICO DE MENSAJES ==========
 client.on('message', async (msg) => {
@@ -157,7 +174,12 @@ client.on('message', async (msg) => {
     }
 
     const phone = msg.from;
-    const text = msg.body ? msg.body.trim() : '';
+    let text = msg.body ? msg.body.trim() : '';
+
+    // Manejar mensajes sin texto (multimedia)
+    if (!text && msg.hasMedia) {
+      text = "[Archivo multimedia o mensaje no soportado]";
+    }
     
     if (!text) return;
 
@@ -166,7 +188,7 @@ client.on('message', async (msg) => {
     const chat = await msg.getChat();
     // await chat.sendStateTyping(); // Comentado
 
-    if (!isAdmin(phone) && text) {
+    if (!isAdmin(phone)) {
       const forwarded = `📩 De ${phone}: ${text}`;
       await sendMessageSafe(ADMIN_PHONE, forwarded);
     }
@@ -174,6 +196,7 @@ client.on('message', async (msg) => {
     if (isAdmin(phone)) {
       const handled = await handleAdminCommands(phone, text);
       if (handled) return;
+      return; // No procesar mensajes de admin en el flujo de citas
     }
 
     await handleAppointmentFlow(phone, text);
@@ -336,8 +359,17 @@ async function updateAppointmentStatus(aptId, newStatus) {
 
 // ========== FLUJO DE AGENDAMIENTO ==========
 async function handleAppointmentFlow(phone, text) {
-  const state = userStates.get(phone) || { step: 'initial' };
   const textLower = text.toLowerCase();
+
+  // Comando para reiniciar el flujo
+  if (textLower === 'reiniciar' || textLower === 'cancelar') {
+    userStates.delete(phone);
+    await saveUserStates();
+    await sendMessageSafe(phone, '🔄 Proceso reiniciado. Escribe *"hola"* para comenzar de nuevo.');
+    return;
+  }
+
+  const state = userStates.get(phone) || { step: 'initial' };
   
   switch (state.step) {
     case 'initial':
@@ -353,6 +385,7 @@ async function handleAppointmentFlow(phone, text) {
         
         await sendMessageSafe(phone, welcomeMsg);
         userStates.set(phone, { step: 'waiting_name' });
+        await saveUserStates();
       } else {
         // Respuesta genérica para otros mensajes
         const genericMsg = `Hola! 👋\n\nSoy el asistente de *RLDental*.\n\nEscribe *"hola"* o *"cita"* para agendar tu cita dental. 🦷`;
@@ -366,6 +399,7 @@ async function handleAppointmentFlow(phone, text) {
       const nameMsg = `Perfecto ${text}! 😊\n\nAhora dime:\n\n🎂 *¿Cuántos años tienes?*\n\n_(Escribe "omitir" si prefieres no decirlo)_`;
       await sendMessageSafe(phone, nameMsg);
       userStates.set(phone, { ...state, step: 'waiting_age' });
+      await saveUserStates();
       break;
       
     case 'waiting_age':
@@ -378,6 +412,7 @@ async function handleAppointmentFlow(phone, text) {
       
       await sendMessageSafe(phone, servicesMsg);
       userStates.set(phone, { ...state, step: 'waiting_service' });
+      await saveUserStates();
       break;
       
     case 'waiting_service':
@@ -426,6 +461,7 @@ async function handleAppointmentFlow(phone, text) {
       
       await sendMessageSafe(phone, datesMsg);
       userStates.set(phone, { ...state, step: 'waiting_date', availableDates: dates });
+      await saveUserStates();
       break;
       
     case 'waiting_date':
@@ -449,6 +485,7 @@ async function handleAppointmentFlow(phone, text) {
       
       await sendMessageSafe(phone, slotsMsg);
       userStates.set(phone, { ...state, step: 'waiting_time', availableSlots });
+      await saveUserStates();
       break;
       
     case 'waiting_time':
@@ -495,6 +532,7 @@ async function handleAppointmentFlow(phone, text) {
       
       // Limpiar estado
       userStates.delete(phone);
+      await saveUserStates();
       break;
   }
 }
@@ -565,6 +603,10 @@ client.on('auth_failure', () => {
 
 client.on('disconnected', (reason) => {
   console.log('❌ WhatsApp desconectado:', reason);
+  console.log('🔄 Intentando reconectar en 10 segundos...');
+  setTimeout(() => {
+    client.initialize();
+  }, 10000);
 });
 
 // ========== INICIAR ==========
