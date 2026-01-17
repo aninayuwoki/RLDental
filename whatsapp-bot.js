@@ -36,7 +36,7 @@ const defaultConfig = {
 const client = new Client({
   authStrategy: new LocalAuth({ clientId: 'rldental-bot' }),
   puppeteer: {
-    headless: true, // Para depuración
+    headless: true,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -46,6 +46,10 @@ const client = new Client({
       '--no-zygote',
       '--disable-gpu'
     ]
+  },
+  webVersionCache: {
+    type: 'remote',
+    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html'
   }
 });
 
@@ -158,7 +162,18 @@ async function sendMessageSafe(phone, message) {
 
 // ========== ESTADO DE CONVERSACIONES ==========
 let userStates = new Map();
-loadUserStates().then(s => userStates = s);
+
+// Cargar estados guardados
+async function initUserStates() {
+  try {
+    userStates = await loadUserStates();
+    console.log(`✅ ${userStates.size} estados de conversación cargados.`);
+  } catch (error) {
+    console.error('❌ Error cargando estados iniciales:', error.message);
+    userStates = new Map();
+  }
+}
+initUserStates();
 
 // ========== MANEJADOR ÚNICO DE MENSAJES ==========
 client.on('message', async (msg) => {
@@ -190,6 +205,7 @@ client.on('message', async (msg) => {
 
     if (!isAdmin(phone)) {
       const forwarded = `📩 De ${phone}: ${text}`;
+      console.log(`📣 Reenviando mensaje de ${phone} al administrador...`);
       await sendMessageSafe(ADMIN_PHONE, forwarded);
     }
 
@@ -570,6 +586,7 @@ app.get('/api/appointments', async (req, res) => {
 // ========== EVENTOS WHATSAPP ==========
 
 client.on('qr', (qr) => {
+  console.log('✨ Código QR recibido, generándolo...');
   console.log('\n🔐 Escanea este código QR con WhatsApp:\n');
   qrcode.generate(qr, { small: true });
   console.log('\n📱 Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo\n');
@@ -594,7 +611,7 @@ client.on('ready', async () => {
 });
 
 client.on('authenticated', () => {
-  console.log('✅ WhatsApp autenticado correctamente');
+  console.log('✅ WhatsApp autenticado correctamente. Cargando chats...');
 });
 
 client.on('auth_failure', () => {
@@ -611,7 +628,10 @@ client.on('disconnected', (reason) => {
 
 // ========== INICIAR ==========
 
-client.initialize();
+console.log('🚀 Iniciando cliente de WhatsApp...');
+client.initialize().catch(err => {
+  console.error('❌ Error fatal al inicializar WhatsApp:', err);
+});
 
 app.listen(PORT, () => {
   console.log(`🌐 API Server iniciado en puerto ${PORT}`);
