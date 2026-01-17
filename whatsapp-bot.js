@@ -41,16 +41,13 @@ const client = new Client({
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
+      '--shm-size=1gb',
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
       '--disable-gpu',
       '--disable-extensions'
     ]
-  },
-  webVersionCache: {
-    type: 'remote',
-    remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html'
   }
 });
 
@@ -146,7 +143,7 @@ async function getAvailableSlots(date) {
 }
 
 function isAdmin(phone) {
-  return phone.includes('593997982617');
+  return phone.includes(ADMIN_PHONE.split('@')[0]);
 }
 
 async function sendMessageSafe(phone, message) {
@@ -174,8 +171,6 @@ async function initUserStates() {
     userStates = new Map();
   }
 }
-initUserStates();
-
 // ========== MANEJADOR ÚNICO DE MENSAJES ==========
 client.on('message', async (msg) => {
   console.log('📥 Mensaje crudo recibido:', msg.from, msg.body, msg.type);
@@ -603,6 +598,7 @@ client.on('authenticated', () => {
 });
 
 client.on('ready', async () => {
+  if (typeof startupTimeout !== 'undefined') clearInterval(startupTimeout);
   console.log(`
 ╔════════════════════════════════════════════╗
 ║   🦷 BOT WHATSAPP RLDENTAL ACTIVO 🦷      ║
@@ -622,28 +618,37 @@ client.on('ready', async () => {
 
 client.on('auth_failure', (msg) => {
   console.error('❌ Error de autenticación:', msg);
+  console.log('💡 Tip: Si el error persiste, intenta borrar las carpetas .wwebjs_auth y .wwebjs_cache');
 });
 
 client.on('disconnected', (reason) => {
   console.log('❌ WhatsApp desconectado:', reason);
   console.log('🔄 Intentando reconectar en 10 segundos...');
   setTimeout(() => {
-    client.initialize();
+    client.initialize().catch(err => console.error('❌ Error al re-inicializar:', err));
   }, 10000);
 });
 
 // ========== INICIAR ==========
 
-console.log('🚀 Iniciando cliente de WhatsApp...');
-let startupTimeout = setInterval(() => {
-  console.log('⏳ El bot sigue intentando iniciar... (esto puede tardar hasta 1 minuto en la primera carga)');
-}, 30000);
+let startupTimeout;
+console.log('🚀 Preparando el sistema...');
 
-client.initialize().then(() => {
-  clearInterval(startupTimeout);
-}).catch(err => {
-  clearInterval(startupTimeout);
-  console.error('❌ Error fatal al inicializar WhatsApp:', err);
+initUserStates().then(() => {
+  console.log('🚀 Iniciando cliente de WhatsApp...');
+  console.log('💡 Si es la primera vez, se descargarán los archivos necesarios del navegador...');
+
+  startupTimeout = setInterval(() => {
+    console.log('⏳ El bot sigue intentando conectar con WhatsApp... (esto es normal si la conexión es lenta)');
+  }, 15000);
+
+  client.initialize().then(() => {
+    clearInterval(startupTimeout);
+  }).catch(err => {
+    clearInterval(startupTimeout);
+    console.error('❌ Error fatal al inicializar WhatsApp:', err);
+    console.log('💡 Tip: Intenta borrar la carpeta .wwebjs_auth y reinicia el bot.');
+  });
 });
 
 app.listen(PORT, () => {
