@@ -44,7 +44,8 @@ const client = new Client({
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--disable-extensions'
     ]
   },
   webVersionCache: {
@@ -585,11 +586,20 @@ app.get('/api/appointments', async (req, res) => {
 
 // ========== EVENTOS WHATSAPP ==========
 
+client.on('loading_screen', (percent, message) => {
+  console.log(`⏳ Cargando WhatsApp: ${percent}% - ${message}`);
+});
+
 client.on('qr', (qr) => {
   console.log('✨ Código QR recibido, generándolo...');
-  console.log('\n🔐 Escanea este código QR con WhatsApp:\n');
+  console.log('--------------------------------------------------');
+  console.log('\n🔐 ESCANEA ESTE CÓDIGO QR CON TU WHATSAPP:\n');
   qrcode.generate(qr, { small: true });
   console.log('\n📱 Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo\n');
+});
+
+client.on('authenticated', () => {
+  console.log('✅ WhatsApp autenticado correctamente. Cargando chats...');
 });
 
 client.on('ready', async () => {
@@ -610,12 +620,8 @@ client.on('ready', async () => {
   console.log(`✅ Admin (notificaciones): ${ADMIN_PHONE}\n`);
 });
 
-client.on('authenticated', () => {
-  console.log('✅ WhatsApp autenticado correctamente. Cargando chats...');
-});
-
-client.on('auth_failure', () => {
-  console.error('❌ Error de autenticación');
+client.on('auth_failure', (msg) => {
+  console.error('❌ Error de autenticación:', msg);
 });
 
 client.on('disconnected', (reason) => {
@@ -629,7 +635,14 @@ client.on('disconnected', (reason) => {
 // ========== INICIAR ==========
 
 console.log('🚀 Iniciando cliente de WhatsApp...');
-client.initialize().catch(err => {
+let startupTimeout = setInterval(() => {
+  console.log('⏳ El bot sigue intentando iniciar... (esto puede tardar hasta 1 minuto en la primera carga)');
+}, 30000);
+
+client.initialize().then(() => {
+  clearInterval(startupTimeout);
+}).catch(err => {
+  clearInterval(startupTimeout);
   console.error('❌ Error fatal al inicializar WhatsApp:', err);
 });
 
